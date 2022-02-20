@@ -1,0 +1,15 @@
+[package]
+name = "gd_song_metadataifier"
+version = "0.1.0"
+edition = "2021"
+license-file = "LICENSE.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+youtube_dl = {version = "0.7.0", features = ["yt-dlp", "tokio"], default-features = false}
+id3 = "1.0.2"
+glob = "0.3.0"
+clap = { version = "3.0.10", features = ["derive"] }
+futures = "0.3.21"
+tokio = { version = "1.17.0", features = ["macros", "rt-multi-thread"] }

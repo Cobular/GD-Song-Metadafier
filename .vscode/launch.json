@@ -1,0 +1,45 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'gd_song_metadataifier'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=gd_song_metadataifier",
+          "--package=gd_song_metadataifier"
+        ],
+        "filter": {
+          "name": "gd_song_metadataifier",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'gd_song_metadataifier'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=gd_song_metadataifier",
+          "--package=gd_song_metadataifier"
+        ],
+        "filter": {
+          "name": "gd_song_metadataifier",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
