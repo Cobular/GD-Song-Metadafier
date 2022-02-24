@@ -16,6 +16,8 @@ pub async fn add_metadata(base_path: PathBuf, parallel_requests: usize) -> Resul
 
     let file_ids = get_non_title_ids(base_path.to_string())?;
 
+    debug!("Found file IDs: {:?}", file_ids);
+
     let song_bodies = stream::iter(file_ids)
         .map(|file_id| {
             let url = format!("https://www.newgrounds.com/audio/listen/{}", file_id);
@@ -68,42 +70,63 @@ fn parse_successful(ytdl_output: YoutubeDlOutput, base_path: String) -> Result<(
                 display_id,
                 ..
             } = *vid;
-            
+
+            debug!("Successfully parsed {}", title);
 
             // Display ID is critical to the functionality as it's how we get back to the song file
             let display_id = display_id.ok_or(make_io_err(&format!(
                 "Song {} does not have a display ID",
                 &title
             )))?;
+        
 
-
+            debug!("{:?}", base_path);
             let file_path = make_path_from_id(&base_path, &display_id);
 
-            let mut tag = match Tag::read_from_path(&file_path) {
-                Ok(tag) => tag,
+            debug!("Trying to open file at path {:?}", file_path);
+
+            let file_name = file_path.file_name().unwrap_or(file_path.as_os_str());
+
+            let mut tag = match Tag::read_from_path(file_path.as_path()) {
+                Ok(tag) => {
+                    debug!("Found a tag on {:?}", file_name);
+                    tag
+                }
                 Err(id3Error {
                     kind: ErrorKind::NoTag,
                     ..
-                }) => Tag::new(),
+                }) => {
+                    debug!("No tag on {:?}", file_name);
+                    Tag::new()
+                }
                 Err(id3Error {
                     kind: ErrorKind::Parsing,
+                    description,
                     ..
-                }) => Tag::new(),
-                Err(err) => Err(err)?,
+                }) => {
+                    warn!("Failed to parse the tag on {:?} ({:?}), giving it a new tag", file_name, description);
+                    Tag::new()
+                }
+                Err(err) => {
+                    error!(
+                        "Error reading tag on {:?}: {:?}",
+                        file_name, err
+                    );
+                    Err(err)?
+                }
             };
 
+            debug!("Current tags: {:?}", tag.title());
 
             tag.set_title(&title);
             debug!("Set title for {} to {}", display_id, &title);
             let mut count: u8 = 1;
-
 
             if let Some(uploader) = uploader {
                 tag.set_artist(&uploader);
                 debug!("Set artist for {} to {}", display_id, &uploader);
                 count += 1;
             }
-
 
             if let Some(upload_date) = upload_date {
                 tag.set_date_released(Timestamp::from_str(&upload_date).map_err(|err| {
@@ -113,7 +136,6 @@ fn parse_successful(ytdl_output: YoutubeDlOutput, base_path: String) -> Result<(
                 debug!("Set upload date for {} to {}", display_id, upload_date);
                 count += 1;
             }
-            
 
             // WOAS - Official audio source webpage
             if let Some(webpage_url) = webpage_url {

@@ -4,6 +4,7 @@ use add_metadata::add_metadata;
 use clap::Parser;
 use env_logger::Builder;
 
+use log::debug;
 use tokio;
 use wipe_metadata::wipe_metadata;
 
@@ -16,12 +17,12 @@ mod wipe_metadata;
 #[clap(version, about, long_about = None)]
 struct Args {
     /// The path to the GD music folder, including trailing slash
-    #[clap(long, parse(from_os_str), default_value = "./")]
+    #[clap(short, long, parse(from_os_str), default_value = "./")]
     path: PathBuf,
 
     /// The number of concurrent requests to make
-    #[clap(long, default_value = "4")]
-    parallel_requests: usize,
+    #[clap(short, long, default_value = "4")]
+    threads: usize,
 
     /// Wipes metadata of provided songs. Takes priority over all other flags.
     #[clap(short)]
@@ -36,7 +37,7 @@ async fn main() {
     // Arg parser - makes it a proper command line app
     let Args {
         path: base_path,
-        parallel_requests,
+        threads: parallel_requests,
         wipe,
         verbose,
     } = Args::parse();
@@ -46,9 +47,11 @@ async fn main() {
         .init();
 
     if wipe {
+        debug!("Starting wipe");
         wipe_metadata(base_path).unwrap();
         return;
     }
 
+    debug!("Starting adding metadata w/ base path {:?} and {parallel_requests} requests", base_path);
     add_metadata(base_path, parallel_requests).await.unwrap();
 }

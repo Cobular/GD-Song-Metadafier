@@ -19,7 +19,10 @@
           "kind": "bin"
         }
       },
-      "args": [],
+      "args": [
+        "--path",
+        "C:\\Users\\jdc10\\AppData\\Local\\GDBad\\"
+      ],
       "cwd": "${workspaceFolder}"
     },
     {
